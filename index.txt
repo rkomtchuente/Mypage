@@ -1,0 +1,198 @@
+<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rostand Kom | Data Science Portfolio</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f5f7fa;
+      color: #1f2933;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-top: 3rem;
+    }
+
+    p {
+      color: #4b5563;
+    }
+
+    .projects {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .card-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      transition: 0.2s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+	
+
+    .skills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .skill {
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    footer {
+      background: #111827;
+      color: #d1d5db;
+      padding: 2rem;
+      margin-top: 4rem;
+    }
+
+    footer a {
+      color: #93c5fd;
+      margin-right: 1rem;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="container">
+    <h1>Rostand Kom</h1>
+    <p>Data Scientist | Machine Learning Engineer</p>
+  </div>
+</header>
+
+<section class="container">
+  <h2>About Me</h2>
+  <p>
+    I am a Data Science master’s graduate with a background in Biochemistry.
+    I specialize in data analytics, machine learning, and applying AI to real-world problems.
+  </p>
+</section>
+
+<section class="container">
+  <h2>Projects</h2>
+
+  <div class="projects">
+    <a href="projects/medical-image.html" class="card-link">
+      <div class="card">
+        <h3>Medical Image Classification</h3>
+        <p>Deep learning model for disease detection using medical imaging data.</p>
+        <p><strong>Tech:</strong> Python, PyTorch, CNN</p>
+        <p><strong>Results:</strong> Accuracy 92%, F1-score 0.90</p>
+      </div>
+    </a>
+
+    <a href="projects/medical-image.html" class="card-link">
+      <div class="card">
+        <h3>Customer Churn Prediction</h3>
+        <p>Machine learning pipeline to predict customer churn.</p>
+        <p><strong>Tech:</strong> Pandas, Scikit-learn</p>
+        <p><strong>Results:</strong> ROC-AUC 0.87</p>
+      </div>
+    </a>
+
+    <a href="projects/medical-image.html" class="card-link">
+      <div class="card">
+        <h3>NLP Sentiment Analysis</h3>
+        <p>Text classification model for customer reviews.</p>
+        <p><strong>Tech:</strong> NLP, Transformers</p>
+        <p><strong>Results:</strong> Accuracy 89%</p>
+      </div>
+    </a>
+
+    <a href="projects/medical-image.html" class="card-link">
+      <div class="card">
+        <h3>Time Series Forecasting</h3>
+        <p>Forecasting trends using ARIMA and LSTM models.</p>
+        <p><strong>Results:</strong> RMSE 12.4</p>
+      </div>
+    <a/>
+  </div>
+</section>
+
+<section class="container">
+  <h2>Skills</h2>
+
+  <div class="skills">
+    <div class="skill">Python</div>
+    <div class="skill">SQL</div>
+    <div class="skill">Pandas & NumPy</div>
+    <div class="skill">Scikit-learn</div>
+    <div class="skill">PyTorch</div>
+    <div class="skill">Data Visualization</div>
+  </div>
+</section>
+
+<section class="container">
+  <h2>Resume</h2>
+  <p>Download my resume below.</p>
+  <a class="btn" href="Rostand Kom Resume.pdf" target="_blank">Download Resume</a>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2025 Rostand Kom</p>
+    <a href="#">GitHub</a>
+    <a href="#">LinkedIn</a>
+    <a href="mailto:you@email.com">Email</a>
+  </div>
+</footer>
+
+</body>
+</html>

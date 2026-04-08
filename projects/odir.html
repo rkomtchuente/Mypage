@@ -1,0 +1,139 @@
+<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Medical Image Classification</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    h1, h2 {
+      color: #1f2933;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+
+    .box {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <a href="../index.html">← Back to Portfolio</a>
+
+    <h1>Medical Image Classification</h1>
+    <p><strong>Domain:</strong> Healthcare / Computer Vision</p>
+
+    <div class="box">
+      <h2>Problem Statement</h2>
+      <p>
+        The goal of this project is to automatically detect disease patterns
+        from medical images using deep learning.
+      </p>
+    </div>
+
+    <div class="box">
+      <h2>Dataset</h2>
+      <p>
+        Public medical imaging dataset with labeled disease categories.
+      </p>
+    </div>
+
+    <div class="box">
+      <h2>Approach</h2>
+      <ul>
+        <li>Image preprocessing and normalization</li>
+        <li>CNN architecture (PyTorch)</li>
+        <li>Train/validation split</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>Results</h2>
+      <p>Accuracy: 92%</p>
+      <p>F1-score: 0.90</p>
+    </div>
+
+    <div class="box">
+      <h2>Try the Model</h2>
+
+      <form id="odir-form" enctype="multipart/form-data">
+        <label>Age:</label><br>
+        <input type="number" name="age" required><br><br>
+
+        <label>Sex:</label><br>
+        <select name="sex">
+          <option value="1">Male</option>
+          <option value="0">Female</option>
+        </select><br><br>
+
+        <label>Right Eye Image:</label><br>
+        <input type="file" name="right_eye" accept="image/*" required><br><br>
+
+        <label>Left Eye Image:</label><br>
+        <input type="file" name="left_eye" accept="image/*" required><br><br>
+
+        <button class="btn" type="submit">Run Diagnosis</button>
+      </form>
+
+      <pre id="result"></pre>
+    </div>
+
+
+    <a class="btn" href="https://github.com/your-repo" target="_blank">
+      View Code on GitHub
+    </a>
+
+  </div>
+
+  <script>
+  document.getElementById("odir-form").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+
+    document.getElementById("result").innerText = "Running model...";
+
+    let res = await fetch("http://localhost:8000/predict", {
+      method: "POST",
+      body: formData
+    });
+
+    let data = await res.json();
+
+    let output = `
+    Diagnosis: ${data.Diagnostic}
+    Confidence: ${data.Confidence}%
+    `;
+
+    document.getElementById("result").innerText = output;
+  });
+  </script>
+
+</body>
+</html>
