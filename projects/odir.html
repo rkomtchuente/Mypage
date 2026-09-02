@@ -119,7 +119,7 @@
 
     document.getElementById("result").innerText = "Running model...";
 
-    let res = await fetch("https://rostandodir.onrender.com", {
+    let res = await fetch("https://rostandodir.onrender.com/predict", {
       method: "POST",
       body: formData
     });
