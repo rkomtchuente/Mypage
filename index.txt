@@ -1,111 +1,143 @@
 <html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rostand Kom | Data Science Portfolio</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rostand Kom | Data Science Portfolio</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: #f5f7fa;
-      color: #1f2933;
-      line-height: 1.6;
-    }
+<style>
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
+  color: #1f2933;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
 
-    header {
-      background: #ffffff;
-      padding: 2rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 2rem 1rem;
+}
 
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 2rem;
-    }
+h1 { font-size: 2.8rem; margin-bottom: 0.2rem; font-weight: 700; }
+h2 { font-size: 2rem; margin-top: 3rem; margin-bottom: 1rem; font-weight: 600; color: #111827; }
+h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+p { color: #4b5563; margin-bottom: 1rem; }
+a { text-decoration: none; color: inherit; }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.2rem;
-    }
+/* Header */
+header {
+  background: #ffffff;
+  padding: 2rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 100;
+}
 
-    h2 {
-      font-size: 2rem;
-      margin-top: 3rem;
-    }
+header p {
+  max-width: 650px;
+  margin: 0.5rem auto 1.5rem auto;
+}
 
-    p {
-      color: #4b5563;
-    }
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
 
-    .projects {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
+.btn:hover { background: #1d4ed8; }
 
-    .card {
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    .card-link {
-      text-decoration: none;
-      color: inherit;
-    }
+/* Two-column layout under header */
+.main-columns {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+}
 
-    .card:hover {
-      transform: translateY(-4px);
-      transition: 0.2s ease;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    }
-	
+/* Left column */
+.left-column { flex: 4; }
 
-    .skills {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
+/* Right column */
+.right-column { flex: 1; }
 
-    .skill {
-      background: #ffffff;
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
+/* Responsive: stack columns on mobile */
+@media (max-width: 800px) {
+  .main-columns {
+    flex-direction: column;
+  }
+}
 
-    .btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
-      background: #2563eb;
-      color: #ffffff;
-      text-decoration: none;
-      border-radius: 6px;
-    }
+/* Projects */
+.projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
 
-    .btn:hover {
-      background: #1d4ed8;
-    }
+.card {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-    footer {
-      background: #111827;
-      color: #d1d5db;
-      padding: 2rem;
-      margin-top: 4rem;
-    }
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
 
-    footer a {
-      color: #93c5fd;
-      margin-right: 1rem;
-      text-decoration: none;
-    }
-  </style>
+.card p strong { color: #111827; }
+
+/* Skills */
+.skills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* smaller min width */
+  gap: 0.7rem; /* smaller gap */
+  margin-top: 1rem;
+}
+
+.skill {
+  background: #f9fafb;
+  padding: 0.6rem; /* reduced padding */
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9rem; /* slightly smaller font */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* slightly lighter shadow */
+  transition: transform 0.2s ease;
+}
+
+.skill:hover { transform: scale(1.05); }
+
+/* Footer */
+footer {
+  background: #f3f4f6;
+  color: #1f2933;
+  padding: 2rem 1rem;
+  margin-top: 4rem;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+footer a { color: #2563eb; margin: 0 0.5rem; }
+
+/* Responsive text */
+@media (max-width: 600px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  .btn { width: 100%; text-align: center; }
+}
+</style>
 </head>
 
 <body>
@@ -114,83 +146,71 @@
   <div class="container">
     <h1>Rostand Kom</h1>
     <p>Data Scientist | Machine Learning Engineer</p>
+    <p>Solving real-world problems with AI and machine learning for healthcare, business analytics, and automation.</p>
   </div>
 </header>
 
-<section class="container">
-  <h2>About Me</h2>
-  <p>
-    I am a Data Science master’s graduate with a background in Biochemistry.
-    I specialize in data analytics, machine learning, and applying AI to real-world problems.
-  </p>
-</section>
+<!-- Two-column layout under header -->
+<section class="container main-columns">
 
-<section class="container">
-  <h2>Projects</h2>
+  <!-- Left column: About Me, Projects, Let's Work Together -->
+  <div class="left-column">
 
-  <div class="projects">
-    <a href="projects/medical-image.html" class="card-link">
-      <div class="card">
-        <h3>Medical Image Classification</h3>
-        <p>Deep learning model for disease detection using medical imaging data.</p>
-        <p><strong>Tech:</strong> Python, PyTorch, CNN</p>
-        <p><strong>Results:</strong> Accuracy 92%, F1-score 0.90</p>
-      </div>
-    </a>
+    <h2>About Me</h2>
+    <p>I’m an aspiring data scientist specializing in data analytics and machine learning, eager to make an impact in my first data science role. My journey began as a Quality Control Analyst at Cold Spring Brewing Company, followed by hands-on healthcare experience as a clinical assistant at the University of Minnesota Physicians Clinic, all while earning my Master’s in Data Science. I bring a unique mix of analytical skills, scientific rigor, and practical experience, and I’m passionate about learning, solving problems, and applying data-driven insights to real-world challenges. Off the clock, soccer is my passion; both playing and watching.</p>
 
-    <a href="projects/medical-image.html" class="card-link">
-      <div class="card">
-        <h3>Customer Churn Prediction</h3>
-        <p>Machine learning pipeline to predict customer churn.</p>
-        <p><strong>Tech:</strong> Pandas, Scikit-learn</p>
-        <p><strong>Results:</strong> ROC-AUC 0.87</p>
-      </div>
-    </a>
+    <h2 id="projects">Featured Projects</h2>
+    <div class="projects">
+      <a href="projects/odir.html" class="card-link">
+        <div class="card">
+          <img src="images/odir.png" alt="AI Eye Disease Detection" style="width:100%; border-radius:8px; margin-bottom:1rem; object-fit:cover;">
+          <h3>AI Eye Disease Detection</h3>
+          <p>End-to-end deep learning system for multi-class ocular disease diagnosis from retinal fundus images.</p>
+          <p><strong>Tech:</strong> PyTorch, CNNs, FastAPI, OpenCV</p>
+          <p><strong>Model:</strong> EfficientNet-B3</p>
+          <p><strong>Performance:</strong> ROC-AUC 0.98</p>
+        </div>
+      </a>
+    </div>
 
-    <a href="projects/medical-image.html" class="card-link">
-      <div class="card">
-        <h3>NLP Sentiment Analysis</h3>
-        <p>Text classification model for customer reviews.</p>
-        <p><strong>Tech:</strong> NLP, Transformers</p>
-        <p><strong>Results:</strong> Accuracy 89%</p>
-      </div>
-    </a>
-
-    <a href="projects/medical-image.html" class="card-link">
-      <div class="card">
-        <h3>Time Series Forecasting</h3>
-        <p>Forecasting trends using ARIMA and LSTM models.</p>
-        <p><strong>Results:</strong> RMSE 12.4</p>
-      </div>
-    <a/>
+    <h2>Let’s Work Together</h2>
+    <p>I am open to Data Scientist, Machine Learning Engineer, AI Engineer, or similar roles. Feel free to contact me for full-time, contract, or freelance opportunities.</p>
+    <a class="btn" href="mailto:rkomtchuente@gmail.com">Contact Me</a>
   </div>
-</section>
 
-<section class="container">
-  <h2>Skills</h2>
+  <!-- Right column: Skills + Resume -->
+  <div class="right-column">
 
-  <div class="skills">
-    <div class="skill">Python</div>
-    <div class="skill">SQL</div>
-    <div class="skill">Pandas & NumPy</div>
-    <div class="skill">Scikit-learn</div>
-    <div class="skill">PyTorch</div>
-    <div class="skill">Data Visualization</div>
+    <h2>Skills</h2>
+    <div class="skills">
+      <div class="skill">Python</div>
+      <div class="skill">SQL</div>
+      <div class="skill">Tableau</div>
+      <div class="skill">Pandas & NumPy</div>
+      <div class="skill">Scikit-learn</div>
+      <div class="skill">PyTorch</div>
+      <div class="skill">TensorFlow</div>
+      <div class="skill">FastAPI</div>
+      <div class="skill">Data Visualization</div>
+    </div>
+
+    <h2>Resume</h2>
+    <p>Preview my resume below or download it.</p>
+    <iframe src="Rostand Kom Resume.pdf" 
+            style="width:100%; height:300px; border:1px solid #e5e7eb; border-radius:8px;">
+    </iframe>
+    <a class="btn" href="Rostand Kom Resume.pdf" target="_blank" style="margin-top:1rem; display:inline-block;">Download Resume</a>
+
   </div>
-</section>
 
-<section class="container">
-  <h2>Resume</h2>
-  <p>Download my resume below.</p>
-  <a class="btn" href="Rostand Kom Resume.pdf" target="_blank">Download Resume</a>
 </section>
 
 <footer>
   <div class="container">
     <p>© 2025 Rostand Kom</p>
-    <a href="#">GitHub</a>
-    <a href="#">LinkedIn</a>
-    <a href="mailto:you@email.com">Email</a>
+    <a href="https://github.com/rkomtchuente">GitHub</a>
+    <a href="https://www.linkedin.com/in/rkomtchuente/">LinkedIn</a>
+    <a href="mailto:rkomtchuente@gmail.com">Email</a>
   </div>
 </footer>
 
