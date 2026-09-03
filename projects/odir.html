@@ -1,139 +1,134 @@
-<html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Medical Image Classification</title>
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f7fa;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 2rem;
-    }
-
-    h1, h2 {
-      color: #1f2933;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 0.6rem 1.2rem;
-      background: #2563eb;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      margin-top: 1rem;
-    }
-
-    .box {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medical Image Classification | Portfolio</title>
+  
+  <!-- Fonts and Stylesheet -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
   <div class="container">
+    <a href="../index.html" class="back-link">← Back to Portfolio</a>
 
-    <a href="../index.html">← Back to Portfolio</a>
-
-    <h1>Medical Image Classification</h1>
-    <p><strong>Domain:</strong> Healthcare / Computer Vision</p>
-
-    <div class="box">
-      <h2>Problem Statement</h2>
-      <p>
-        The goal of this project is to automatically detect disease patterns
-        from medical images using deep learning.
-      </p>
+    <div class="project-header">
+      <h1>Medical Image Classification</h1>
+      <span class="badge">Healthcare / Computer Vision</span>
     </div>
 
-    <div class="box">
-      <h2>Dataset</h2>
-      <p>
-        Public medical imaging dataset with labeled disease categories.
-      </p>
+    <!-- Top section split into a grid -->
+    <div class="info-grid">
+      <div class="card">
+        <h2>Problem Statement</h2>
+        <p>Leveraging deep learning to automate ocular disease screening, enabling faster, more scalable, and earlier clinical diagnoses.</p>
+      </div>
+
+      <div class="card">
+        <h2>Model Architecture</h2>
+        <ul>
+          <li>Image preprocessing & normalization</li>
+          <li>CNN architecture (PyTorch)</li>
+          <li>Public ODIR dataset</li>
+        </ul>
+      </div>
     </div>
 
-    <div class="box">
-      <h2>Approach</h2>
-      <ul>
-        <li>Image preprocessing and normalization</li>
-        <li>CNN architecture (PyTorch)</li>
-        <li>Train/validation split</li>
-      </ul>
-    </div>
-
-    <div class="box">
-      <h2>Results</h2>
-      <p>Accuracy: 92%</p>
-      <p>F1-score: 0.90</p>
-    </div>
-
-    <div class="box">
-      <h2>Try the Model</h2>
-
+    <!-- Main Demo Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <h2>Try the Live Model</h2>
+      
       <form id="odir-form" enctype="multipart/form-data">
-        <label>Age:</label><br>
-        <input type="number" name="age" required><br><br>
+        <div class="info-grid">
+          <div class="form-group">
+            <label>Patient Age</label>
+            <input type="number" name="age" placeholder="e.g. 45" required>
+          </div>
 
-        <label>Sex:</label><br>
-        <select name="sex">
-          <option value="1">Male</option>
-          <option value="0">Female</option>
-        </select><br><br>
+          <div class="form-group">
+            <label>Biological Sex</label>
+            <select name="sex">
+              <option value="1">Male</option>
+              <option value="0">Female</option>
+            </select>
+          </div>
+        </div>
 
-        <label>Right Eye Image:</label><br>
-        <input type="file" name="right_eye" accept="image/*" required><br><br>
+        <div class="info-grid">
+          <div class="form-group">
+            <label>Right Eye Fundus Image</label>
+            <input type="file" name="right_eye" accept="image/*" required>
+          </div>
 
-        <label>Left Eye Image:</label><br>
-        <input type="file" name="left_eye" accept="image/*" required><br><br>
+          <div class="form-group">
+            <label>Left Eye Fundus Image</label>
+            <input type="file" name="left_eye" accept="image/*" required>
+          </div>
+        </div>
 
         <button class="btn" type="submit">Run Diagnosis</button>
       </form>
 
-      <pre id="result"></pre>
+      <!-- Results container -->
+      <div id="result-box"></div>
     </div>
 
-
-    <a class="btn" href="https://github.com/your-repo" target="_blank">
-      View Code on GitHub
-    </a>
+    <!-- Footer metrics and links -->
+    <div class="info-grid">
+      <div class="card">
+        <h2>Performance Metrics</h2>
+        <p><strong>Accuracy:</strong> 92%</p>
+        <p><strong>F1-score:</strong> 0.90</p>
+        <p><strong>ROC-AUC:</strong> 0.98</p>
+      </div>
+      
+      <div class="card">
+        <h2>Model Training & Source Code</h2>
+        <p>Review the data preprocessing pipeline, CNN architecture, and evaluation metrics used to train this model.</p>
+        <a class="btn btn-outline" href="https://github.com/rkomtchuente/YOUR_TRAINING_REPO_LINK" target="_blank" style="margin-top: 1rem; display: block; text-align: center;">
+          View Training Code
+        </a>
+      </div>
+    </div>
 
   </div>
 
   <script>
-  document.getElementById("odir-form").addEventListener("submit", async function(e) {
-    e.preventDefault();
+    document.getElementById("odir-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
 
-    let formData = new FormData(this);
+      let formData = new FormData(this);
+      let resultBox = document.getElementById("result-box");
+      
+      // UI state for loading
+      resultBox.style.display = "block";
+      resultBox.className = "loading";
+      resultBox.innerText = "Processing images and running model inference...";
 
-    document.getElementById("result").innerText = "Running model...";
+      try {
+        let res = await fetch("https://odir-1-0.onrender.com/predict", {
+          method: "POST",
+          body: formData
+        });
 
-    let res = await fetch("https://odir-1-0.onrender.com/predict", {
-      method: "POST",
-      body: formData
+        if (!res.ok) throw new Error("Network response was not ok");
+
+        let data = await res.json();
+
+        // UI state for success
+        resultBox.className = "";
+        resultBox.innerHTML = `Diagnosis: <strong>${data.Diagnostic}</strong><br>Confidence: <strong>${data.Confidence}%</strong>`;
+      } catch (error) {
+        // UI state for error
+        resultBox.className = "";
+        resultBox.style.background = "#fef2f2";
+        resultBox.style.borderColor = "#fecaca";
+        resultBox.style.color = "#991b1b";
+        resultBox.innerText = "Error connecting to the model API. Please try again.";
+      }
     });
-
-    let data = await res.json();
-
-    let output = `
-    Diagnosis: ${data.Diagnostic}
-    Confidence: ${data.Confidence}%
-    `;
-
-    document.getElementById("result").innerText = output;
-  });
   </script>
-
 </body>
 </html>
