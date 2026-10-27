@@ -99,45 +99,61 @@
 
         const map = L.map('map', { worldCopyJump: true }).setView(WORLD_CENTER, WORLD_ZOOM);
 
-        // Map tiles: light CARTO tiles first (they match the portfolio's clean look).
-        // If none of them load, fall back to standard OpenStreetMap tiles.
-        const TILE_SOURCES = [
-            {
-                url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                options: {
-                    maxZoom: 19,
-                    subdomains: 'abcd',
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }
-            },
-            {
-                url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                options: {
-                    maxZoom: 19,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }
+        // ---------- Map tiles ----------
+        // CARTO raster tiles need a free API key (request one at https://carto.com/basemaps/apikey/).
+        // Paste yours between the quotes. While it is empty, the map uses OpenStreetMap tiles instead.
+        const CARTO_KEY = 'cb1_4wdo_1_69bf72c6698adf7fc89246c1';
+
+        // 'light_all' (Positron, light), 'dark_all' (Dark Matter) or 'rastertiles/voyager' (Voyager)
+        const CARTO_STYLE = 'light_all';
+
+        const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+        const OSM_SOURCE = {
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: { maxZoom: 19, attribution: OSM_ATTRIBUTION }
+        };
+
+        const CARTO_SOURCE = {
+            url: `https://{s}.basemaps.cartocdn.com/${CARTO_STYLE}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_KEY)}`,
+            options: {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: OSM_ATTRIBUTION + ' &copy; <a href="https://carto.com/attributions">CARTO</a>'
             }
-        ];
+        };
+
+        // With a key: CARTO first, OpenStreetMap as the backup. Without one: OpenStreetMap only.
+        const TILE_SOURCES = CARTO_KEY ? [CARTO_SOURCE, OSM_SOURCE] : [OSM_SOURCE];
 
         let tileSourceIndex = 0;
+        let tileLayer = null;
         let tileErrors = 0;
         let tilesLoaded = 0;
-        let tileLayer = null;
 
         function addTileLayer() {
             const source = TILE_SOURCES[tileSourceIndex];
-            tileLayer = L.tileLayer(source.url, source.options).addTo(map);
+            const layer = L.tileLayer(source.url, source.options).addTo(map);
+            tileLayer = layer;
+            tileErrors = 0;
+            tilesLoaded = 0;
 
-            tileLayer.on('tileload', () => { tilesLoaded++; });
-            tileLayer.on('tileerror', () => {
+            // Ignore late events from a layer we have already replaced
+            layer.on('tileload', () => { if (layer === tileLayer) tilesLoaded++; });
+            layer.on('tileerror', () => {
+                if (layer !== tileLayer) return;
                 tileErrors++;
-                const canFallBack = tileSourceIndex < TILE_SOURCES.length - 1;
-                if (tilesLoaded === 0 && tileErrors >= 3 && canFallBack) {
-                    console.warn('Map tiles failed to load, switching to the next tile provider');
-                    map.removeLayer(tileLayer);
+                if (tilesLoaded > 0 || tileErrors !== 3) return;
+
+                if (tileSourceIndex < TILE_SOURCES.length - 1) {
+                    console.warn('Map tiles are not loading, switching to the next tile provider');
+                    map.removeLayer(layer);
                     tileSourceIndex++;
-                    tileErrors = 0;
                     addTileLayer();
+                } else {
+                    // OpenStreetMap blocks pages that send no Referer, which includes pages
+                    // opened straight from a file (file://). Serving the page over http fixes that.
+                    console.warn('Map tiles are not loading. If you opened this page by double-clicking the file, serve it from a local web server instead (for example: python -m http.server 5500).');
                 }
             });
         }
