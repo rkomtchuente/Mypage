@@ -21,7 +21,7 @@ body {
   scroll-behavior: smooth;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100vh; /* Keeps footer at bottom */
 }
 
 .container {
@@ -93,6 +93,7 @@ a:hover {
 /* =========================================
    LAYOUTS & GRIDS
    ========================================= */
+/* Two-column layout for homepage */
 .main-columns {
   display: flex;
   gap: 2.5rem;
@@ -114,6 +115,7 @@ a:hover {
   gap: 2.5rem;
 }
 
+/* Grid layout for project pages */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -141,7 +143,7 @@ header {
   margin-bottom: 3rem;
 }
 
-.project-header {
+.project-header { /* Used on individual project pages */
   margin: 40px 0 2.5rem 0;
 }
 
@@ -283,11 +285,6 @@ input[type="file"] {
 
 .btn:hover { background: var(--accent-hover); }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-full { width: 100%; }
 
 .btn-outline {
@@ -303,8 +300,7 @@ input[type="file"] {
    DYNAMIC RESULTS (Project Pages)
    ========================================= */
 #result-box {
-  margin-top: 1.2rem;
-  margin-bottom: 1.2rem;
+  margin-top: 1.5rem;
   padding: 1.2rem;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
@@ -322,173 +318,103 @@ input[type="file"] {
   color: #1e40af !important;
 }
 
-.error-banner {
-  background: #fef2f2 !important;
-  border-color: #fecaca !important;
-  color: #991b1b !important;
+/* =========================================
+   EONET MAP (Project Page)
+   ========================================= */
+.project-header--center { text-align: center; }
+
+/* Summary stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* =========================================
-   EONET TRACKER SPECIFIC STYLES
-   ========================================= */
-.status-bar {
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin: 0 0 0.25rem 0;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Map card & toolbar */
+.map-card { margin-bottom: 4rem; }
+
+.map-toolbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-grow: 1;
-  flex-wrap: wrap;
+.map-toolbar .form-group {
+  margin-bottom: 0;
+  flex: 0 1 280px;
 }
 
-.filter-label {
+.map-hint {
   margin: 0;
-  white-space: nowrap;
-}
-
-.filter-select {
-  max-width: 200px;
-  padding: 0.4rem 0.6rem;
-}
-
-.btn-refresh {
-  padding: 0.4rem 0.9rem;
   font-size: 0.85rem;
-  width: auto;
 }
 
-/* FIXED MAP DIMENSIONS TO PREVENT COLLAPSE */
-#map {
-  height: 550px;
-  min-height: 450px;
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #e5e7eb; /* Fallback background while tiles load */
-  position: relative;
-  z-index: 1;
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.tracker-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
+/* Loading / error messages above the map */
+.map-card #result-box { margin: 0 0 1rem 0; }
 
-.event-list-container {
-  height: 550px;
-  max-height: 550px;
-  overflow-y: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-color);
-  padding: 0.75rem;
-  box-sizing: border-box;
-}
-
-.event-list-placeholder {
-  text-align: center;
-  color: var(--text-muted);
-  margin-top: 2rem;
+.map-card #result-box .btn {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
   font-size: 0.9rem;
 }
 
-.event-item {
-  background: var(--card-bg);
+#result-box.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* The map itself */
+#map {
+  height: 65vh;
+  min-height: 420px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--bg-color);
 }
 
-.event-item:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+@media (max-width: 600px) {
+  #map { height: 55vh; min-height: 360px; }
 }
 
-.event-item-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text-main);
-  margin-bottom: 0.25rem;
-}
+/* Leaflet theming (popups, fonts) */
+.leaflet-container { font-family: inherit; }
 
-.event-item-meta {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Marker Circle Badge Styling */
-.marker-pin-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  border: 2px solid white;
-}
-
-/* Leaflet Popup Overrides */
 .leaflet-popup-content-wrapper {
-  border-radius: 10px;
-  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
-.popup-card h4 {
-  margin: 0 0 0.4rem 0;
-  font-size: 1rem;
-  color: var(--text-main);
-}
+.leaflet-popup-content { margin: 1rem 1.2rem; }
 
-.popup-card p {
-  margin: 0 0 0.4rem 0;
+.event-popup h3 { margin-bottom: 0.6rem; }
+
+.event-popup p {
+  margin: 0.6rem 0 0 0;
   font-size: 0.85rem;
-}
-
-.popup-badge {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: #eff6ff;
-  color: #1e40af;
-  margin-bottom: 0.5rem;
-}
-
-.popup-source-link {
-  font-size: 0.8rem;
-  text-decoration: underline;
-}
-
-/* Responsive adjustments */
-@media (max-width: 900px) {
-  .tracker-layout {
-    grid-template-columns: 1fr;
-  }
-  #map {
-    height: 400px;
-    min-height: 400px;
-  }
-  .event-list-container {
-    height: 350px;
-  }
 }
