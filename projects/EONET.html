@@ -28,7 +28,7 @@
 
         // Fetch the data from your local FastAPI backend
         // When you deploy your backend to a platform like Render, update this URL
-        fetch('https://fastapi-7y7t.onrender.com')
+        fetch('https://fastapi-7y7t.onrender.com:8080')
             .then(response => response.json())
             .then(data => {
                 data.events.forEach(event => {
