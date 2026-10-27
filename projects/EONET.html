@@ -70,6 +70,11 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        // Ensure Leaflet recalculates dimensions immediately after load
+        window.addEventListener('load', () => {
+            setTimeout(() => map.invalidateSize(), 200);
+        });
+
         const countBadge = document.getElementById('event-count');
         const resultBox = document.getElementById('result-box');
         const categoryFilter = document.getElementById('category-filter');
@@ -176,6 +181,9 @@
 
                 eventListContainer.appendChild(listItem);
             });
+
+            // Force recalculate map size after markers are placed
+            setTimeout(() => map.invalidateSize(), 100);
         }
 
         function populateFilterOptions(events) {
