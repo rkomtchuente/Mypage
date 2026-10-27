@@ -394,7 +394,7 @@ select:disabled {
   min-height: 420px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg-color);
+  background: var(--border); /* visible grey while tiles load, so an empty map is obvious */
 }
 
 @media (max-width: 600px) {
