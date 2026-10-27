@@ -62,18 +62,19 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize Map
+        // Initialize Map Immediately
         const map = L.map('map').setView([20, 0], 2);
 
+        // Load OpenStreetMap Tile Layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Ensure Leaflet recalculates dimensions immediately after load
-        window.addEventListener('load', () => {
-            setTimeout(() => map.invalidateSize(), 200);
-        });
+        // Force Leaflet to recalculate container dimensions immediately after render
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
 
         const countBadge = document.getElementById('event-count');
         const resultBox = document.getElementById('result-box');
@@ -140,7 +141,6 @@
                 const icon = createCategoryIcon(event.category);
                 const marker = L.marker([event.lat, event.lon], { icon }).addTo(markerGroup);
 
-                // Enhanced Popup
                 const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
                     year: 'numeric', month: 'short', day: 'numeric'
                 });
@@ -181,9 +181,6 @@
 
                 eventListContainer.appendChild(listItem);
             });
-
-            // Force recalculate map size after markers are placed
-            setTimeout(() => map.invalidateSize(), 100);
         }
 
         function populateFilterOptions(events) {
@@ -234,16 +231,16 @@
                         resultBox.textContent = `⏳ Render server warming up... Retrying in 5 seconds (Attempt ${attempt}/${maxAttempts})`;
                         retryTimer = setTimeout(() => fetchEventsWithRetry(attempt + 1, maxAttempts), 5000);
                     } else {
-                        countBadge.textContent = 'Connection Timeout';
+                        countBadge.textContent = '0 Events (Offline)';
                         refreshBtn.disabled = false;
                         resultBox.style.display = 'block';
                         resultBox.className = 'error-banner';
                         resultBox.innerHTML = `
-                            ⚠️ <strong>Server Connection Failed</strong><br>
-                            The free Render instance took too long to wake up or is currently offline.<br>
-                            Click <strong>"Refresh Data"</strong> above to try reconnecting.
+                            ⚠️ <strong>Backend Server Connection Timeout</strong><br>
+                            The free Render instance took too long to respond. The interactive map is active, but live markers could not be fetched.<br>
+                            Click <strong>"Refresh Data"</strong> above once the server wakes up.
                         `;
-                        eventListContainer.innerHTML = '<p class="event-list-placeholder">Failed to load events.</p>';
+                        eventListContainer.innerHTML = '<p class="event-list-placeholder">No live events available (backend offline).</p>';
                     }
                 });
         }
