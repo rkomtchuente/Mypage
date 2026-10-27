@@ -8,31 +8,13 @@
     <!-- Leaflet CSS for map styling -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    <!-- Link your custom stylesheet -->
+    <!-- Custom portfolio stylesheet -->
     <link rel="stylesheet" href="style.css" />
-
-    <style>
-        /* Specific layout tweaks for map container */
-        #map {
-            height: 65vh;
-            width: 100%;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            z-index: 1;
-        }
-        
-        .status-bar {
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-    </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Back navigation link -->
+        <!-- Navigation link -->
         <a href="index.html" class="back-link">&larr; Back to Portfolio</a>
 
         <header class="project-header">
@@ -44,16 +26,30 @@
         </header>
 
         <main class="card">
+            <!-- Controls & Filters Header -->
             <div class="status-bar">
-                <h2>Active Events Map</h2>
-                <span id="event-count" class="badge">Loading events...</span>
+                <div class="filter-group">
+                    <label for="category-filter" class="filter-label">Filter Category:</label>
+                    <select id="category-filter" class="filter-select">
+                        <option value="ALL">All Categories</option>
+                    </select>
+                    <button id="refresh-btn" class="btn btn-refresh">
+                        🔄 Refresh Data
+                    </button>
+                </div>
+                <span id="event-count" class="badge">Checking connection...</span>
             </div>
 
-            <!-- Map Container -->
-            <div id="map"></div>
-
-            <!-- Dynamic Result Box for status / error messages -->
+            <!-- Dynamic Result / Banner Box -->
             <div id="result-box"></div>
+
+            <!-- Main Layout: Map + Event Sidebar -->
+            <div class="tracker-layout">
+                <div id="map"></div>
+                <div class="event-list-container" id="event-list">
+                    <p class="event-list-placeholder">Loading event feed...</p>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -63,8 +59,7 @@
         </div>
     </footer>
 
-    <!-- Leaflet JS for the map logic -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Initialize Map
@@ -78,56 +73,50 @@
         const countBadge = document.getElementById('event-count');
         const resultBox = document.getElementById('result-box');
         const categoryFilter = document.getElementById('category-filter');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const eventListContainer = document.getElementById('event-list');
 
         let allEvents = [];
+        let markerMap = new Map();
         let markerGroup = L.layerGroup().addTo(map);
+        let retryTimer = null;
 
-        // Map categories to distinct colored emoji pins using Leaflet divIcon
+        // Custom category marker generator
         function createCategoryIcon(category) {
             const cat = (category || '').toLowerCase();
             let emoji = '📍';
-            let bgColor = '#2563eb'; // default accent blue
+            let bgColor = '#2563eb';
 
             if (cat.includes('fire') || cat.includes('wildfire')) {
                 emoji = '🔥';
-                bgColor = '#dc2626'; // red
+                bgColor = '#dc2626';
             } else if (cat.includes('storm') || cat.includes('cyclone') || cat.includes('hurricane')) {
                 emoji = '🌀';
-                bgColor = '#0284c7'; // cyan blue
+                bgColor = '#0284c7';
             } else if (cat.includes('volcano')) {
                 emoji = '🌋';
-                bgColor = '#d97706'; // amber
+                bgColor = '#d97706';
             } else if (cat.includes('ice') || cat.includes('snow') || cat.includes('glacier')) {
                 emoji = '❄️';
-                bgColor = '#2563eb'; // blue
+                bgColor = '#2563eb';
             } else if (cat.includes('flood') || cat.includes('water')) {
                 emoji = '🌊';
-                bgColor = '#0891b2'; // teal
+                bgColor = '#0891b2';
             }
 
             return L.divIcon({
                 className: 'custom-marker',
-                html: `<div style="
-                    background-color: ${bgColor};
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 16px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    border: 2px solid white;
-                ">${emoji}</div>`,
+                html: `<div class="marker-pin-badge" style="background-color: ${bgColor};">${emoji}</div>`,
                 iconSize: [32, 32],
                 iconAnchor: [16, 16]
             });
         }
 
-        // Render markers based on filter selection
-        function renderMarkers(selectedCategory = 'ALL') {
+        // Render markers & populate side-panel list
+        function renderMarkersAndList(selectedCategory = 'ALL') {
             markerGroup.clearLayers();
+            markerMap.clear();
+            eventListContainer.innerHTML = '';
 
             const filteredEvents = selectedCategory === 'ALL' 
                 ? allEvents 
@@ -135,27 +124,63 @@
 
             countBadge.textContent = `${filteredEvents.length} Active Events`;
 
-            filteredEvents.forEach(event => {
+            if (filteredEvents.length === 0) {
+                eventListContainer.innerHTML = '<p class="event-list-placeholder">No events found for this category.</p>';
+                return;
+            }
+
+            filteredEvents.forEach((event, idx) => {
                 if (!event.lat || !event.lon) return;
 
                 const icon = createCategoryIcon(event.category);
                 const marker = L.marker([event.lat, event.lon], { icon }).addTo(markerGroup);
 
-                marker.bindPopup(`
-                    <b>${event.title}</b><br>
-                    Category: ${event.category}<br>
-                    Date: ${new Date(event.date).toLocaleDateString()}
-                `);
+                // Enhanced Popup
+                const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+
+                const sourceLink = event.link 
+                    ? `<br><a href="${event.link}" target="_blank" rel="noopener noreferrer" class="popup-source-link">View NASA EONET Source &rarr;</a>` 
+                    : '';
+
+                const popupHtml = `
+                    <div class="popup-card">
+                        <span class="popup-badge">${event.category}</span>
+                        <h4>${event.title}</h4>
+                        <p><strong>Date Detected:</strong> ${formattedDate}</p>
+                        <p><strong>Coordinates:</strong> ${event.lat.toFixed(2)}°, ${event.lon.toFixed(2)}°</p>
+                        ${sourceLink}
+                    </div>
+                `;
+
+                marker.bindPopup(popupHtml);
+                markerMap.set(idx, marker);
+
+                // Build Side-Panel List Item
+                const listItem = document.createElement('div');
+                listItem.className = 'event-item';
+                listItem.innerHTML = `
+                    <div class="event-item-title">${event.title}</div>
+                    <div class="event-item-meta">
+                        <span>${event.category}</span>
+                        <span>${formattedDate}</span>
+                    </div>
+                `;
+
+                // Click event on sidebar item pans map & opens popup
+                listItem.addEventListener('click', () => {
+                    map.flyTo([event.lat, event.lon], 6, { duration: 1.2 });
+                    marker.openPopup();
+                });
+
+                eventListContainer.appendChild(listItem);
             });
         }
 
-        // Populate filter options dynamically based on API results
         function populateFilterOptions(events) {
             const categories = [...new Set(events.map(e => e.category).filter(Boolean))].sort();
-            
-            // Clear prior extra options
             categoryFilter.innerHTML = '<option value="ALL">All Categories</option>';
-            
             categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
@@ -164,29 +189,63 @@
             });
         }
 
-        // Event listener for category selection
-        categoryFilter.addEventListener('change', (e) => {
-            renderMarkers(e.target.value);
-        });
+        // Fetch Data with Timeout & Retry Handling
+        function fetchEventsWithRetry(attempt = 1, maxAttempts = 3) {
+            if (retryTimer) clearTimeout(retryTimer);
 
-        // Fetch events from FastAPI backend
-        fetch('https://fastapi-7y7t.onrender.com')
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                allEvents = data.events || [];
-                populateFilterOptions(allEvents);
-                renderMarkers('ALL');
-            })
-            .catch(error => {
-                console.error('Error loading events:', error);
-                countBadge.textContent = 'Failed to load';
-                resultBox.style.display = 'block';
-                resultBox.classList.add('loading');
-                resultBox.textContent = 'Unable to fetch live event data from the backend. The free Render instance may be spinning up. Please refresh in a minute.';
-            });
+            countBadge.textContent = 'Connecting...';
+            refreshBtn.disabled = true;
+            resultBox.style.display = 'block';
+            resultBox.className = 'loading';
+            resultBox.textContent = attempt === 1 
+                ? '⏳ Fetching live event data from NASA backend...' 
+                : `⏳ Server is spinning up (Attempt ${attempt}/${maxAttempts})... Please wait.`;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            fetch('https://fastapi-7y7t.onrender.com', { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    allEvents = data.events || [];
+                    populateFilterOptions(allEvents);
+                    renderMarkersAndList(categoryFilter.value || 'ALL');
+
+                    resultBox.style.display = 'none';
+                    refreshBtn.disabled = false;
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.warn(`Fetch attempt ${attempt} failed:`, error);
+
+                    if (attempt < maxAttempts) {
+                        resultBox.textContent = `⏳ Render server warming up... Retrying in 5 seconds (Attempt ${attempt}/${maxAttempts})`;
+                        retryTimer = setTimeout(() => fetchEventsWithRetry(attempt + 1, maxAttempts), 5000);
+                    } else {
+                        countBadge.textContent = 'Connection Timeout';
+                        refreshBtn.disabled = false;
+                        resultBox.style.display = 'block';
+                        resultBox.className = 'error-banner';
+                        resultBox.innerHTML = `
+                            ⚠️ <strong>Server Connection Failed</strong><br>
+                            The free Render instance took too long to wake up or is currently offline.<br>
+                            Click <strong>"Refresh Data"</strong> above to try reconnecting.
+                        `;
+                        eventListContainer.innerHTML = '<p class="event-list-placeholder">Failed to load events.</p>';
+                    }
+                });
+        }
+
+        // Event listeners
+        categoryFilter.addEventListener('change', (e) => renderMarkersAndList(e.target.value));
+        refreshBtn.addEventListener('click', () => fetchEventsWithRetry(1, 3));
+
+        // Initial Load
+        fetchEventsWithRetry();
     </script>
 </body>
 </html>
