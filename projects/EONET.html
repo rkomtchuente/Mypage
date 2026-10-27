@@ -209,7 +209,7 @@
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-            fetch('https://fastapi-7y7t.onrender.com', { signal: controller.signal })
+            fetch('http://localhost:8000/api/events', { signal: controller.signal })
                 .then(response => {
                     clearTimeout(timeoutId);
                     if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
