@@ -197,7 +197,7 @@ footer {
   height: 200px;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  object-fit: cover;
+  object-fit: contain;
   background: var(--bg-color);
   border: 1px solid var(--border);
 }
