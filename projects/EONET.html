@@ -3,254 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Natural Events Tracker</title>
+    <title>NASA EONET Tracker</title>
 
-    <!-- Leaflet CSS for map styling -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- Custom portfolio stylesheet -->
-    <link rel="stylesheet" href="style.css" />
+    <!-- Inter font (same as the rest of the portfolio) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS first, so style.css can override it -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <main>
+        <div class="container">
+            <a href="index.html" class="back-link">&larr; Back to portfolio</a>
 
-    <div class="container">
-        <!-- Navigation link -->
-        <a href="index.html" class="back-link">&larr; Back to Portfolio</a>
-
-        <header class="project-header">
-            <h1>NASA EONET Tracker</h1>
-            <p class="subtitle">Real-time Earth Observatory Natural Event Tracker</p>
-            <p class="header-desc">
-                Visualizing active global events such as wildfires, severe storms, and volcanic activity fetched directly from NASA's Earth Observatory Natural Event Tracker API via FastAPI backend.
-            </p>
-        </header>
-
-        <main class="card">
-            <!-- Controls & Filters Header -->
-            <div class="status-bar">
-                <div class="filter-group">
-                    <label for="category-filter" class="filter-label">Filter Category:</label>
-                    <select id="category-filter" class="filter-select">
-                        <option value="ALL">All Categories</option>
-                    </select>
-                    <button id="refresh-btn" class="btn btn-refresh">
-                        🔄 Refresh Data
-                    </button>
-                </div>
-                <span id="event-count" class="badge">Checking connection...</span>
+            <div class="project-header project-header--center">
+                <h1>NASA EONET Tracker</h1>
+                <p class="subtitle">Live map of natural events around the world</p>
+                <p class="header-desc">
+                    Wildfires, storms, volcanoes and more, pulled from NASA's Earth Observatory
+                    Natural Event Tracker through a custom FastAPI backend.
+                </p>
             </div>
 
-            <!-- Dynamic Result / Banner Box -->
-            <div id="result-box"></div>
-
-            <!-- Main Layout: Map + Event Sidebar -->
-            <div class="tracker-layout">
-                <div id="map"></div>
-                <div class="event-list-container" id="event-list">
-                    <p class="event-list-placeholder">Loading event feed...</p>
+            <!-- Summary stats (filled in by the script below) -->
+            <section class="stats-grid" aria-label="Summary">
+                <div class="card">
+                    <p class="stat-value" id="stat-events">&ndash;</p>
+                    <p class="stat-label">Events shown</p>
                 </div>
-            </div>
-        </main>
-    </div>
+                <div class="card">
+                    <p class="stat-value" id="stat-categories">&ndash;</p>
+                    <p class="stat-label">Categories</p>
+                </div>
+                <div class="card">
+                    <p class="stat-value" id="stat-latest">&ndash;</p>
+                    <p class="stat-label">Most recent event</p>
+                </div>
+            </section>
+
+            <section class="card map-card">
+                <div class="map-toolbar">
+                    <div class="form-group">
+                        <label for="category-filter">Filter by category</label>
+                        <select id="category-filter" disabled>
+                            <option value="all">All categories</option>
+                        </select>
+                    </div>
+                    <p class="map-hint">Click a marker for details</p>
+                </div>
+
+                <!-- Loading / error messages -->
+                <div id="result-box" role="status" aria-live="polite"></div>
+
+                <div id="map" role="region" aria-label="Map of natural events"></div>
+            </section>
+        </div>
+    </main>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2026 Rostand Kom Tchuente. All rights reserved.</p>
+        <p>
+            Data from <a href="https://eonet.gsfc.nasa.gov/" target="_blank" rel="noopener">NASA EONET</a>.
+            Map &copy; OpenStreetMap contributors &copy; CARTO.
+        </p>
+        <div class="footer-links">
+            <a href="index.html">Portfolio</a>
         </div>
     </footer>
 
-    <!-- Leaflet JS -->
+    <!-- Leaflet JS for the map logic -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize Map Immediately
-        const map = L.map('map').setView([20, 0], 2);
+        // When you move your backend, this is the only URL you need to change
+        const API_URL = 'https://fastapi-7y7t.onrender.com';
 
-        // Load OpenStreetMap Tile Layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // Read the portfolio colors from style.css so the markers always match
+        const rootStyles = getComputedStyle(document.documentElement);
+        const ACCENT = rootStyles.getPropertyValue('--accent').trim();
+        const ACCENT_HOVER = rootStyles.getPropertyValue('--accent-hover').trim();
+        const CARD_BG = rootStyles.getPropertyValue('--card-bg').trim();
+
+        const WORLD_CENTER = [20, 0];
+        const WORLD_ZOOM = 2;
+
+        const map = L.map('map', { worldCopyJump: true }).setView(WORLD_CENTER, WORLD_ZOOM);
+
+        // Light, minimal tiles to match the portfolio's clean look
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(map);
 
-        // Force Leaflet to recalculate container dimensions immediately after render
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 100);
+        // One layer for all markers, so filtering is just clear + redraw
+        const markerLayer = L.layerGroup().addTo(map);
 
-        const countBadge = document.getElementById('event-count');
-        const resultBox = document.getElementById('result-box');
-        const categoryFilter = document.getElementById('category-filter');
-        const refreshBtn = document.getElementById('refresh-btn');
-        const eventListContainer = document.getElementById('event-list');
-
+        const statusBox = document.getElementById('result-box');
+        const filterSelect = document.getElementById('category-filter');
         let allEvents = [];
-        let markerMap = new Map();
-        let markerGroup = L.layerGroup().addTo(map);
-        let retryTimer = null;
 
-        // Custom category marker generator
-        function createCategoryIcon(category) {
-            const cat = (category || '').toLowerCase();
-            let emoji = '📍';
-            let bgColor = '#2563eb';
+        // ---------- Helpers ----------
 
-            if (cat.includes('fire') || cat.includes('wildfire')) {
-                emoji = '🔥';
-                bgColor = '#dc2626';
-            } else if (cat.includes('storm') || cat.includes('cyclone') || cat.includes('hurricane')) {
-                emoji = '🌀';
-                bgColor = '#0284c7';
-            } else if (cat.includes('volcano')) {
-                emoji = '🌋';
-                bgColor = '#d97706';
-            } else if (cat.includes('ice') || cat.includes('snow') || cat.includes('glacier')) {
-                emoji = '❄️';
-                bgColor = '#2563eb';
-            } else if (cat.includes('flood') || cat.includes('water')) {
-                emoji = '🌊';
-                bgColor = '#0891b2';
+        // Show a message above the map. type: 'loading' | 'error' | undefined
+        function setStatus(message, type, onRetry) {
+            statusBox.className = type || '';
+            statusBox.replaceChildren(document.createTextNode(message));
+            if (onRetry) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-outline';
+                button.textContent = 'Try again';
+                button.addEventListener('click', onRetry);
+                statusBox.append(document.createElement('br'), button);
             }
-
-            return L.divIcon({
-                className: 'custom-marker',
-                html: `<div class="marker-pin-badge" style="background-color: ${bgColor};">${emoji}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            });
+            statusBox.style.display = 'block';
         }
 
-        // Render markers & populate side-panel list
-        function renderMarkersAndList(selectedCategory = 'ALL') {
-            markerGroup.clearLayers();
-            markerMap.clear();
-            eventListContainer.innerHTML = '';
+        function hideStatus() {
+            statusBox.style.display = 'none';
+        }
 
-            const filteredEvents = selectedCategory === 'ALL' 
-                ? allEvents 
-                : allEvents.filter(e => e.category === selectedCategory);
+        // Event titles come from an external API, so never insert them as raw HTML
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
+            return div.innerHTML;
+        }
 
-            countBadge.textContent = `${filteredEvents.length} Active Events`;
+        function formatDate(value) {
+            const date = new Date(value);
+            if (isNaN(date)) return 'Unknown date';
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
 
-            if (filteredEvents.length === 0) {
-                eventListContainer.innerHTML = '<p class="event-list-placeholder">No events found for this category.</p>';
-                return;
+        function popupHtml(event) {
+            return `
+                <div class="event-popup">
+                    <h3>${escapeHtml(event.title)}</h3>
+                    <span class="badge">${escapeHtml(event.category)}</span>
+                    <p>${formatDate(event.date)}</p>
+                </div>`;
+        }
+
+        // ---------- Rendering ----------
+
+        function updateStats(visibleEvents) {
+            const categories = new Set(allEvents.map(e => e.category));
+            const times = visibleEvents.map(e => new Date(e.date).getTime()).filter(t => !isNaN(t));
+
+            document.getElementById('stat-events').textContent = visibleEvents.length;
+            document.getElementById('stat-categories').textContent = categories.size;
+            document.getElementById('stat-latest').textContent =
+                times.length ? formatDate(Math.max(...times)) : '\u2013';
+        }
+
+        function render(category = 'all') {
+            markerLayer.clearLayers();
+
+            const visible = allEvents.filter(e => category === 'all' || e.category === category);
+            const points = [];
+
+            visible.forEach(event => {
+                const marker = L.circleMarker([event.lat, event.lon], {
+                    radius: 8,
+                    color: CARD_BG,
+                    weight: 2,
+                    fillColor: ACCENT,
+                    fillOpacity: 0.9
+                });
+
+                marker.bindPopup(popupHtml(event));
+                marker.on('mouseover', () => marker.setStyle({ radius: 10, fillColor: ACCENT_HOVER }));
+                marker.on('mouseout', () => marker.setStyle({ radius: 8, fillColor: ACCENT }));
+                marker.addTo(markerLayer);
+
+                points.push([event.lat, event.lon]);
+            });
+
+            updateStats(visible);
+
+            // Zoom to the filtered events, or go back to the world view
+            if (category !== 'all' && points.length) {
+                map.fitBounds(points, { padding: [40, 40], maxZoom: 5 });
+            } else {
+                map.setView(WORLD_CENTER, WORLD_ZOOM);
             }
-
-            filteredEvents.forEach((event, idx) => {
-                if (!event.lat || !event.lon) return;
-
-                const icon = createCategoryIcon(event.category);
-                const marker = L.marker([event.lat, event.lon], { icon }).addTo(markerGroup);
-
-                const formattedDate = new Date(event.date).toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'short', day: 'numeric'
-                });
-
-                const sourceLink = event.link 
-                    ? `<br><a href="${event.link}" target="_blank" rel="noopener noreferrer" class="popup-source-link">View NASA EONET Source &rarr;</a>` 
-                    : '';
-
-                const popupHtml = `
-                    <div class="popup-card">
-                        <span class="popup-badge">${event.category}</span>
-                        <h4>${event.title}</h4>
-                        <p><strong>Date Detected:</strong> ${formattedDate}</p>
-                        <p><strong>Coordinates:</strong> ${event.lat.toFixed(2)}°, ${event.lon.toFixed(2)}°</p>
-                        ${sourceLink}
-                    </div>
-                `;
-
-                marker.bindPopup(popupHtml);
-                markerMap.set(idx, marker);
-
-                // Build Side-Panel List Item
-                const listItem = document.createElement('div');
-                listItem.className = 'event-item';
-                listItem.innerHTML = `
-                    <div class="event-item-title">${event.title}</div>
-                    <div class="event-item-meta">
-                        <span>${event.category}</span>
-                        <span>${formattedDate}</span>
-                    </div>
-                `;
-
-                // Click event on sidebar item pans map & opens popup
-                listItem.addEventListener('click', () => {
-                    map.flyTo([event.lat, event.lon], 6, { duration: 1.2 });
-                    marker.openPopup();
-                });
-
-                eventListContainer.appendChild(listItem);
-            });
         }
 
-        function populateFilterOptions(events) {
-            const categories = [...new Set(events.map(e => e.category).filter(Boolean))].sort();
-            categoryFilter.innerHTML = '<option value="ALL">All Categories</option>';
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                categoryFilter.appendChild(opt);
-            });
+        function fillFilter() {
+            const categories = [...new Set(allEvents.map(e => e.category))].sort();
+            filterSelect.replaceChildren(new Option('All categories', 'all'));
+            categories.forEach(name => filterSelect.add(new Option(name, name)));
+            filterSelect.disabled = false;
         }
 
-        // Fetch Data with Timeout & Retry Handling
-        function fetchEventsWithRetry(attempt = 1, maxAttempts = 3) {
-            if (retryTimer) clearTimeout(retryTimer);
+        // ---------- Loading data ----------
 
-            countBadge.textContent = 'Connecting...';
-            refreshBtn.disabled = true;
-            resultBox.style.display = 'block';
-            resultBox.className = 'loading';
-            resultBox.textContent = attempt === 1 
-                ? '⏳ Fetching live event data from NASA backend...' 
-                : `⏳ Server is spinning up (Attempt ${attempt}/${maxAttempts})... Please wait.`;
+        async function loadEvents() {
+            setStatus(
+                'Loading events\u2026 the server may take up to a minute to wake up on the first visit.',
+                'loading'
+            );
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+                const data = await response.json();
 
-            fetch('http://localhost:8000/api/events', { signal: controller.signal })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    allEvents = data.events || [];
-                    populateFilterOptions(allEvents);
-                    renderMarkersAndList(categoryFilter.value || 'ALL');
+                // Keep only events that have usable coordinates
+                allEvents = (data.events || [])
+                    .map(e => ({
+                        title: e.title,
+                        category: e.category || 'Uncategorized',
+                        date: e.date,
+                        lat: Number(e.lat),
+                        lon: Number(e.lon)
+                    }))
+                    .filter(e => Number.isFinite(e.lat) && Number.isFinite(e.lon));
 
-                    resultBox.style.display = 'none';
-                    refreshBtn.disabled = false;
-                })
-                .catch(error => {
-                    clearTimeout(timeoutId);
-                    console.warn(`Fetch attempt ${attempt} failed:`, error);
+                if (!allEvents.length) {
+                    setStatus('No events came back from the server right now.', 'error', loadEvents);
+                    return;
+                }
 
-                    if (attempt < maxAttempts) {
-                        resultBox.textContent = `⏳ Render server warming up... Retrying in 5 seconds (Attempt ${attempt}/${maxAttempts})`;
-                        retryTimer = setTimeout(() => fetchEventsWithRetry(attempt + 1, maxAttempts), 5000);
-                    } else {
-                        countBadge.textContent = '0 Events (Offline)';
-                        refreshBtn.disabled = false;
-                        resultBox.style.display = 'block';
-                        resultBox.className = 'error-banner';
-                        resultBox.innerHTML = `
-                            ⚠️ <strong>Backend Server Connection Timeout</strong><br>
-                            The free Render instance took too long to respond. The interactive map is active, but live markers could not be fetched.<br>
-                            Click <strong>"Refresh Data"</strong> above once the server wakes up.
-                        `;
-                        eventListContainer.innerHTML = '<p class="event-list-placeholder">No live events available (backend offline).</p>';
-                    }
-                });
+                hideStatus();
+                fillFilter();
+                render();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                setStatus('Could not load events. Please check your connection and try again.', 'error', loadEvents);
+            }
         }
 
-        // Event listeners
-        categoryFilter.addEventListener('change', (e) => renderMarkersAndList(e.target.value));
-        refreshBtn.addEventListener('click', () => fetchEventsWithRetry(1, 3));
+        filterSelect.addEventListener('change', () => render(filterSelect.value));
 
-        // Initial Load
-        fetchEventsWithRetry();
+        loadEvents();
     </script>
 </body>
 </html>
