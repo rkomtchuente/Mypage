@@ -76,7 +76,16 @@
     <!-- Leaflet JS for the map logic -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // When you move your backend, this is the only URL you need to change
+        // If Leaflet itself didn't load (offline, blocked CDN, content blocker), say so on the page
+        if (typeof L === 'undefined') {
+            const box = document.getElementById('result-box');
+            box.className = 'error';
+            box.textContent = 'The map library (Leaflet) failed to load. Check your internet connection or content blocker, then reload the page.';
+            box.style.display = 'block';
+            throw new Error('Leaflet failed to load');
+        }
+
+        // Local FastAPI backend. When you deploy it (e.g. to Render), this is the only URL to change
         const API_URL = 'http://localhost:8000/api/events';
 
         // Read the portfolio colors from style.css so the markers always match
@@ -90,12 +99,50 @@
 
         const map = L.map('map', { worldCopyJump: true }).setView(WORLD_CENTER, WORLD_ZOOM);
 
-        // Light, minimal tiles to match the portfolio's clean look
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }).addTo(map);
+        // Map tiles: light CARTO tiles first (they match the portfolio's clean look).
+        // If none of them load, fall back to standard OpenStreetMap tiles.
+        const TILE_SOURCES = [
+            {
+                url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                options: {
+                    maxZoom: 19,
+                    subdomains: 'abcd',
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                }
+            },
+            {
+                url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                options: {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }
+            }
+        ];
+
+        let tileSourceIndex = 0;
+        let tileErrors = 0;
+        let tilesLoaded = 0;
+        let tileLayer = null;
+
+        function addTileLayer() {
+            const source = TILE_SOURCES[tileSourceIndex];
+            tileLayer = L.tileLayer(source.url, source.options).addTo(map);
+
+            tileLayer.on('tileload', () => { tilesLoaded++; });
+            tileLayer.on('tileerror', () => {
+                tileErrors++;
+                const canFallBack = tileSourceIndex < TILE_SOURCES.length - 1;
+                if (tilesLoaded === 0 && tileErrors >= 3 && canFallBack) {
+                    console.warn('Map tiles failed to load, switching to the next tile provider');
+                    map.removeLayer(tileLayer);
+                    tileSourceIndex++;
+                    tileErrors = 0;
+                    addTileLayer();
+                }
+            });
+        }
+
+        addTileLayer();
 
         // One layer for all markers, so filtering is just clear + redraw
         const markerLayer = L.layerGroup().addTo(map);
@@ -232,7 +279,7 @@
                 fillFilter();
                 render();
             } catch (error) {
-                console.error('Error loading events:', error);
+                console.error('Error loading events from', API_URL, error);
                 setStatus('Could not load events. Please check your connection and try again.', 'error', loadEvents);
             }
         }
