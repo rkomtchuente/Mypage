@@ -418,3 +418,30 @@ select:disabled {
   margin: 0.6rem 0 0 0;
   font-size: 0.85rem;
 }
+
+/* =========================================
+   Natural Events Emojis Formatting
+   ========================================= */
+
+.emoji-icon {
+    background: none;
+    border: none;
+}
+
+.emoji-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    line-height: 1;
+    background: var(--card-bg, #fff);
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease;
+}
+
+.emoji-icon:hover .emoji-marker {
+    transform: scale(1.2);
+}
