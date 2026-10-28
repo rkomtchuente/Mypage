@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NASA EONET Tracker</title>
-
+ 
     <!-- Inter font (same as the rest of the portfolio) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+ 
     <!-- Leaflet CSS first, so style.css can override it -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="style.css">
@@ -17,8 +17,8 @@
 <body>
     <main>
         <div class="container">
-            <a href="../index.html" class="back-link">Back to portfolio</a>
-
+            <a href="index.html" class="back-link">&larr; Back to portfolio</a>
+ 
             <div class="project-header project-header--center">
                 <h1>NASA EONET Tracker</h1>
                 <p class="subtitle">Live map of natural events around the world</p>
@@ -27,7 +27,7 @@
                     Natural Event Tracker through a custom FastAPI backend.
                 </p>
             </div>
-
+ 
             <!-- Summary stats (filled in by the script below) -->
             <section class="stats-grid" aria-label="Summary">
                 <div class="card">
@@ -43,7 +43,7 @@
                     <p class="stat-label">Most recent event</p>
                 </div>
             </section>
-
+ 
             <section class="card map-card">
                 <div class="map-toolbar">
                     <div class="form-group">
@@ -54,15 +54,15 @@
                     </div>
                     <p class="map-hint">Click a marker for details</p>
                 </div>
-
+ 
                 <!-- Loading / error messages -->
                 <div id="result-box" role="status" aria-live="polite"></div>
-
+ 
                 <div id="map" role="region" aria-label="Map of natural events"></div>
             </section>
         </div>
     </main>
-
+ 
     <footer>
         <p>
             Data from <a href="https://eonet.gsfc.nasa.gov/" target="_blank" rel="noopener">NASA EONET</a>.
@@ -72,237 +72,7 @@
             <a href="index.html">Portfolio</a>
         </div>
     </footer>
-
+ 
     <!-- Leaflet JS for the map logic -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // If Leaflet itself didn't load (offline, blocked CDN, content blocker), say so on the page
-        if (typeof L === 'undefined') {
-            const box = document.getElementById('result-box');
-            box.className = 'error';
-            box.textContent = 'The map library (Leaflet) failed to load. Check your internet connection or content blocker, then reload the page.';
-            box.style.display = 'block';
-            throw new Error('Leaflet failed to load');
-        }
-
-        // Local FastAPI backend. When you deploy it (e.g. to Render), this is the only URL to change
-        const API_URL = 'http://localhost:8000/api/events';
-
-        // Read the portfolio colors from style.css so the markers always match
-        const rootStyles = getComputedStyle(document.documentElement);
-        const ACCENT = rootStyles.getPropertyValue('--accent').trim();
-        const ACCENT_HOVER = rootStyles.getPropertyValue('--accent-hover').trim();
-        const CARD_BG = rootStyles.getPropertyValue('--card-bg').trim();
-
-        const WORLD_CENTER = [20, 0];
-        const WORLD_ZOOM = 2;
-
-        const map = L.map('map', { worldCopyJump: true }).setView(WORLD_CENTER, WORLD_ZOOM);
-
-        // ---------- Map tiles ----------
-        // CARTO raster tiles need a free API key (request one at https://carto.com/basemaps/apikey/).
-        // Paste yours between the quotes. While it is empty, the map uses OpenStreetMap tiles instead.
-        const CARTO_KEY = 'cb1_4wdo_1_69bf72c6698adf7fc89246c1';
-
-        // 'light_all' (Positron, light), 'dark_all' (Dark Matter) or 'rastertiles/voyager' (Voyager)
-        const CARTO_STYLE = 'light_all';
-
-        const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-        const OSM_SOURCE = {
-            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            options: { maxZoom: 19, attribution: OSM_ATTRIBUTION }
-        };
-
-        const CARTO_SOURCE = {
-            url: `https://{s}.basemaps.cartocdn.com/${CARTO_STYLE}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(CARTO_KEY)}`,
-            options: {
-                maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: OSM_ATTRIBUTION + ' &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            }
-        };
-
-        // With a key: CARTO first, OpenStreetMap as the backup. Without one: OpenStreetMap only.
-        const TILE_SOURCES = CARTO_KEY ? [CARTO_SOURCE, OSM_SOURCE] : [OSM_SOURCE];
-
-        let tileSourceIndex = 0;
-        let tileLayer = null;
-        let tileErrors = 0;
-        let tilesLoaded = 0;
-
-        function addTileLayer() {
-            const source = TILE_SOURCES[tileSourceIndex];
-            const layer = L.tileLayer(source.url, source.options).addTo(map);
-            tileLayer = layer;
-            tileErrors = 0;
-            tilesLoaded = 0;
-
-            // Ignore late events from a layer we have already replaced
-            layer.on('tileload', () => { if (layer === tileLayer) tilesLoaded++; });
-            layer.on('tileerror', () => {
-                if (layer !== tileLayer) return;
-                tileErrors++;
-                if (tilesLoaded > 0 || tileErrors !== 3) return;
-
-                if (tileSourceIndex < TILE_SOURCES.length - 1) {
-                    console.warn('Map tiles are not loading, switching to the next tile provider');
-                    map.removeLayer(layer);
-                    tileSourceIndex++;
-                    addTileLayer();
-                } else {
-                    // OpenStreetMap blocks pages that send no Referer, which includes pages
-                    // opened straight from a file (file://). Serving the page over http fixes that.
-                    console.warn('Map tiles are not loading. If you opened this page by double-clicking the file, serve it from a local web server instead (for example: python -m http.server 5500).');
-                }
-            });
-        }
-
-        addTileLayer();
-
-        // One layer for all markers, so filtering is just clear + redraw
-        const markerLayer = L.layerGroup().addTo(map);
-
-        const statusBox = document.getElementById('result-box');
-        const filterSelect = document.getElementById('category-filter');
-        let allEvents = [];
-
-        // ---------- Helpers ----------
-
-        // Show a message above the map. type: 'loading' | 'error' | undefined
-        function setStatus(message, type, onRetry) {
-            statusBox.className = type || '';
-            statusBox.replaceChildren(document.createTextNode(message));
-            if (onRetry) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'btn btn-outline';
-                button.textContent = 'Try again';
-                button.addEventListener('click', onRetry);
-                statusBox.append(document.createElement('br'), button);
-            }
-            statusBox.style.display = 'block';
-        }
-
-        function hideStatus() {
-            statusBox.style.display = 'none';
-        }
-
-        // Event titles come from an external API, so never insert them as raw HTML
-        function escapeHtml(value) {
-            const div = document.createElement('div');
-            div.textContent = value == null ? '' : String(value);
-            return div.innerHTML;
-        }
-
-        function formatDate(value) {
-            const date = new Date(value);
-            if (isNaN(date)) return 'Unknown date';
-            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-        }
-
-        function popupHtml(event) {
-            return `
-                <div class="event-popup">
-                    <h3>${escapeHtml(event.title)}</h3>
-                    <span class="badge">${escapeHtml(event.category)}</span>
-                    <p>${formatDate(event.date)}</p>
-                </div>`;
-        }
-
-        // ---------- Rendering ----------
-
-        function updateStats(visibleEvents) {
-            const categories = new Set(allEvents.map(e => e.category));
-            const times = visibleEvents.map(e => new Date(e.date).getTime()).filter(t => !isNaN(t));
-
-            document.getElementById('stat-events').textContent = visibleEvents.length;
-            document.getElementById('stat-categories').textContent = categories.size;
-            document.getElementById('stat-latest').textContent =
-                times.length ? formatDate(Math.max(...times)) : '\u2013';
-        }
-
-        function render(category = 'all') {
-            markerLayer.clearLayers();
-
-            const visible = allEvents.filter(e => category === 'all' || e.category === category);
-            const points = [];
-
-            visible.forEach(event => {
-                const marker = L.circleMarker([event.lat, event.lon], {
-                    radius: 8,
-                    color: CARD_BG,
-                    weight: 2,
-                    fillColor: ACCENT,
-                    fillOpacity: 0.9
-                });
-
-                marker.bindPopup(popupHtml(event));
-                marker.on('mouseover', () => marker.setStyle({ radius: 10, fillColor: ACCENT_HOVER }));
-                marker.on('mouseout', () => marker.setStyle({ radius: 8, fillColor: ACCENT }));
-                marker.addTo(markerLayer);
-
-                points.push([event.lat, event.lon]);
-            });
-
-            updateStats(visible);
-
-            // Zoom to the filtered events, or go back to the world view
-            if (category !== 'all' && points.length) {
-                map.fitBounds(points, { padding: [40, 40], maxZoom: 5 });
-            } else {
-                map.setView(WORLD_CENTER, WORLD_ZOOM);
-            }
-        }
-
-        function fillFilter() {
-            const categories = [...new Set(allEvents.map(e => e.category))].sort();
-            filterSelect.replaceChildren(new Option('All categories', 'all'));
-            categories.forEach(name => filterSelect.add(new Option(name, name)));
-            filterSelect.disabled = false;
-        }
-
-        // ---------- Loading data ----------
-
-        async function loadEvents() {
-            setStatus(
-                'Loading events\u2026 the server may take up to a minute to wake up on the first visit.',
-                'loading'
-            );
-
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error(`Server responded with ${response.status}`);
-                const data = await response.json();
-
-                // Keep only events that have usable coordinates
-                allEvents = (data.events || [])
-                    .map(e => ({
-                        title: e.title,
-                        category: e.category || 'Uncategorized',
-                        date: e.date,
-                        lat: Number(e.lat),
-                        lon: Number(e.lon)
-                    }))
-                    .filter(e => Number.isFinite(e.lat) && Number.isFinite(e.lon));
-
-                if (!allEvents.length) {
-                    setStatus('No events came back from the server right now.', 'error', loadEvents);
-                    return;
-                }
-
-                hideStatus();
-                fillFilter();
-                render();
-            } catch (error) {
-                console.error('Error loading events from', API_URL, error);
-                setStatus('Could not load events. Please check your connection and try again.', 'error', loadEvents);
-            }
-        }
-
-        filterSelect.addEventListener('change', () => render(filterSelect.value));
-
-        loadEvents();
-    </script>
-</body>
-</html>
