@@ -12,7 +12,7 @@
 
     <!-- Leaflet CSS first, so style.css can override it -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <main>
@@ -88,12 +88,6 @@
         // Local FastAPI backend. When you deploy it (e.g. to Render), this is the only URL to change
         const API_URL = 'http://localhost:8000/api/events';
 
-        // Read the portfolio colors from style.css so the markers always match
-        const rootStyles = getComputedStyle(document.documentElement);
-        const ACCENT = rootStyles.getPropertyValue('--accent').trim();
-        const ACCENT_HOVER = rootStyles.getPropertyValue('--accent-hover').trim();
-        const CARD_BG = rootStyles.getPropertyValue('--card-bg').trim();
-
         const WORLD_CENTER = [20, 0];
         const WORLD_ZOOM = 2;
 
@@ -167,6 +161,40 @@
         const filterSelect = document.getElementById('category-filter');
         let allEvents = [];
 
+        // ---------- Category icons ----------
+
+        // Keys must match the category names your API returns (same text as in the filter dropdown)
+        const CATEGORY_ICONS = {
+            'Wildfires': '🔥',
+            'Severe Storms': '🌀',
+            'Volcanoes': '🌋',
+            'Earthquakes': '🌍',
+            'Floods': '🌊',
+            'Landslides': '⛰️',
+            'Drought': '🏜️',
+            'Dust and Haze': '🌫️',
+            'Sea and Lake Ice': '🧊',
+            'Snow': '❄️',
+            'Temperature Extremes': '🌡️',
+            'Water Color': '💧',
+            'Manmade': '🏭'
+        };
+        const DEFAULT_ICON = '📍';
+
+        function iconFor(category) {
+            return CATEGORY_ICONS[category] || DEFAULT_ICON;
+        }
+
+        function eventIcon(category) {
+            return L.divIcon({
+                html: `<span class="emoji-marker">${iconFor(category)}</span>`,
+                className: 'emoji-icon',      // replaces Leaflet's default white box
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],         // center the emoji on the coordinate
+                popupAnchor: [0, -16]         // open the popup above it
+            });
+        }
+
         // ---------- Helpers ----------
 
         // Show a message above the map. type: 'loading' | 'error' | undefined
@@ -229,17 +257,12 @@
             const points = [];
 
             visible.forEach(event => {
-                const marker = L.circleMarker([event.lat, event.lon], {
-                    radius: 8,
-                    color: CARD_BG,
-                    weight: 2,
-                    fillColor: ACCENT,
-                    fillOpacity: 0.9
+                const marker = L.marker([event.lat, event.lon], {
+                    icon: eventIcon(event.category),
+                    title: event.title        // native tooltip on hover
                 });
 
                 marker.bindPopup(popupHtml(event));
-                marker.on('mouseover', () => marker.setStyle({ radius: 10, fillColor: ACCENT_HOVER }));
-                marker.on('mouseout', () => marker.setStyle({ radius: 8, fillColor: ACCENT }));
                 marker.addTo(markerLayer);
 
                 points.push([event.lat, event.lon]);
@@ -258,7 +281,7 @@
         function fillFilter() {
             const categories = [...new Set(allEvents.map(e => e.category))].sort();
             filterSelect.replaceChildren(new Option('All categories', 'all'));
-            categories.forEach(name => filterSelect.add(new Option(name, name)));
+            categories.forEach(name => filterSelect.add(new Option(`${iconFor(name)} ${name}`, name)));
             filterSelect.disabled = false;
         }
 
